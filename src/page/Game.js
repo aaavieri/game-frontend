@@ -39,7 +39,7 @@ const useStyles = makeStyles(theme => ({
 
 function Inner() {
     const classes = useStyles();
-    http.addDataListener("CallLord", ({lordUser}) => {
+    http.addDataListener("CallLord", "Game", ({lordUser}) => {
         this.setLordUser(lordUser);
     });
     return <React.Fragment>

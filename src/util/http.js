@@ -46,14 +46,14 @@ const http = new function () {
     this.restart = (data) => instance.post('/restart', data);
     this.quitGame = (data) => instance.post('/quitGame', data);
     const dataListeners = {};
-    this.addDataListener = (eventName, listener) => {
+    this.addDataListener = (eventName, listenerName, listener) => {
         if (!dataListeners[eventName]) {
-            dataListeners[eventName] = [];
+            dataListeners[eventName] = {};
         }
-        return dataListeners[eventName].push(listener);
+        return dataListeners[eventName][listenerName] = listener;
     };
-    this.removeDataListener = (eventName, eventId) => {
-        dataListeners[eventName][eventId] = null;
+    this.removeDataListener = (eventName, listenerName) => {
+        delete dataListeners[eventName][listenerName];
     };
     this.startGameEvent = userId => {
         const eventSource = new EventSource(`/game/gameEvent/${userId}`);
@@ -76,8 +76,8 @@ const http = new function () {
             }
         }, false);
         eventSource.onmessage = ({eventName, ...otherData}) => {
-            const {eventListeners = []} = dataListeners[eventName];
-            eventListeners.filter(listener => listener).forEach(listener => listener(otherData));
+            const {eventListeners = {}} = dataListeners[eventName];
+            Object.values(eventListeners).filter(listener => listener).forEach(listener => listener(otherData));
         };
         this.closeSse = () => eventSource.close();
     }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import Card from '@material-ui/core/Card';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/core/styles';
@@ -44,11 +44,12 @@ const useStyles = makeStyles({
 function PokerCard(props) {
     const classes = useStyles();
     const { cardLabel, onClick = () => {}, selected = false } = props;
+    const cardLabelMemo = useMemo(() => cardLabel, [cardLabel]);
     return (
         <Card className={selected ? classes.selectedCard : classes.card} onClick={onClick} raised>
             <div className={classes.cardContent}>
                 <Typography variant="h6" component="h2">
-                    {cardLabel}
+                    {cardLabelMemo}
                 </Typography>
             </div>
         </Card>

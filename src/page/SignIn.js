@@ -132,8 +132,8 @@ function Inner(props) {
 const SignIn = withRouter(connect(
     state => {return {userId: state.info.userId}},
     {
-        setUserId: (userId) => {return {type: 'SET_USER_ID', payload: {userId}}},
-        loginSuccess: () => {return {type: 'LOGIN_SUCCESS'}}
+        setUserId: userId => ({type: 'SET_USER_ID', payload: {userId}}),
+        loginSuccess: () => ({type: 'LOGIN_SUCCESS'})
     }
 )(Inner));
 

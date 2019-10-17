@@ -1,4 +1,5 @@
-import info from './info'
-import { combineReducers } from 'redux'
+import info from "./info"
+import data from "./data"
+import { combineReducers } from "redux"
 
-export default combineReducers({info})
+export default combineReducers({info, data})

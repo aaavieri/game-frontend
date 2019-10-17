@@ -1,12 +1,12 @@
-import React from 'react';
-import './App.css';
-import {Game, SignIn} from './page'
+import React from "react";
+import "./App.css";
+import {Game, SignIn} from "./page"
 import {connect} from "react-redux";
-import { Route, Redirect, Switch } from 'react-router';
-import { HashRouter } from 'react-router-dom'
+import { Route, Redirect, Switch } from "react-router";
+import { HashRouter } from "react-router-dom"
 
 function Inner(props) {
-  const {login} = props
+  const {login} = props;
   return (
       <HashRouter>
           <Switch>
@@ -23,6 +23,6 @@ function Inner(props) {
   );
 }
 const App = connect(
-    state => {return {login: state.info.login}}
-)(Inner)
+    state => ({login: state.info.login})
+)(Inner);
 export default App;
