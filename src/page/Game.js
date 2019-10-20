@@ -45,13 +45,16 @@ function Inner(props) {
         setLordUser(lordUser);
     });
     useEffect(() => {
-        if (!joined) {
-            http.joinGame({userId}).then(({success}) => {
-                if (success) {
-                    joinSuccess();
-                }
-            })
-        }
+        http.startGameEvent(userId, () => {
+            if (!joined) {
+                http.joinGame({userId}).then(({success}) => {
+                    if (success) {
+                        joinSuccess();
+                    }
+                })
+            }
+        });
+        return http.stopGameEvent;
     }, []);
     return <React.Fragment>
         <CssBaseline/>
