@@ -1,10 +1,11 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {CssBaseline, Container, GridList, GridListTile, Typography} from '@material-ui/core'
 import {makeStyles} from '@material-ui/core/styles';
 import {withRouter} from 'react-router';
 import {connect} from "react-redux";
 import Other from '../component/Other'
 import Play from '../component/Play'
+import Self from '../component/Self'
 import {http} from '../util';
 
 const useStyles = makeStyles(theme => ({
@@ -27,21 +28,31 @@ const useStyles = makeStyles(theme => ({
         transform: 'translateZ(0)',
     },
     otherArea: {
-        height: '80%!important'
+        height: '70%!important'
     },
     selfArea: {
-        height: '20%!important'
+        height: '30%!important'
     },
     playArea: {
-        height: '80%!important'
+        height: '70%!important'
     }
 }));
 
-function Inner() {
+function Inner(props) {
     const classes = useStyles();
+    const {joinSuccess, setLordUser, info: {joined, userId}} = props;
     http.addDataListener("CallLord", "Game", ({lordUser}) => {
-        this.setLordUser(lordUser);
+        setLordUser(lordUser);
     });
+    useEffect(() => {
+        if (!joined) {
+            http.joinGame({userId}).then(({success}) => {
+                if (success) {
+                    joinSuccess();
+                }
+            })
+        }
+    }, []);
     return <React.Fragment>
         <CssBaseline/>
         <div className={classes.game}>
@@ -55,7 +66,9 @@ function Inner() {
                 <GridListTile cols={2} className={classes.otherArea}>
                     <Other position={1}/>
                 </GridListTile>
-                <GridListTile cols={10} className={classes.selfArea}/>
+                <GridListTile cols={10} className={classes.selfArea}>
+                    <Self/>
+                </GridListTile>
             </GridList>
         </div>
     </React.Fragment>
@@ -64,7 +77,8 @@ function Inner() {
 const Game = withRouter(connect(
     state => {return {info: state.info}},
     {
-        setLordUser: (lordUser) => {return {type: 'SET_LORD_USER', payload: {lordUser}}}
+        setLordUser: (lordUser) => ({type: "SET_LORD_USER", payload: {lordUser}}),
+        joinSuccess: () => ({type: "JOIN_SUCCESS"})
     }
 )(Inner));
 

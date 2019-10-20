@@ -1,5 +1,7 @@
 import axios from 'axios'
 import Swal from 'sweetalert2'
+import SockJS from 'sockjs-client'
+import webstomp from 'webstomp-client'
 
 const instance = axios.create({
     baseURL: '/game'
@@ -56,31 +58,43 @@ const http = new function () {
         delete dataListeners[eventName][listenerName];
     };
     this.startGameEvent = userId => {
-        const eventSource = new EventSource(`/game/gameEvent/${userId}`);
-        eventSource.addEventListener('open', () => {
-            console.log('Connected');
-        }, false);
-        eventSource.addEventListener('error', e => {
-            if (e.target.readyState === EventSource.CLOSED) {
-                console.log('Disconnected');
-                Swal.fire({
-                    type: 'error',
-                    title: '连接已断开'
-                })
-            } else if (e.target.readyState === EventSource.CONNECTING) {
-                console.log('Connecting...');
-                Swal.fire({
-                    type: 'error',
-                    title: '重连中...'
-                })
-            }
-        }, false);
-        eventSource.onmessage = ({eventName, ...otherData}) => {
-            const {eventListeners = {}} = dataListeners[eventName];
-            Object.values(eventListeners).filter(listener => listener).forEach(listener => listener(otherData));
-        };
-        this.closeSse = () => eventSource.close();
-    }
+        const socket = new SockJS("/gameEvent/handshake");
+        const stompClient = webstomp.over(socket);
+        stompClient.connect({}, () => {
+            stompClient.subscribe(`/topic/gameEvent/${userId}`, ({body}) => {
+                const data = JSON.parse(body);
+                const {eventName, ...otherData} = data;
+                const eventListeners = dataListeners[eventName] || {};
+                console.log(eventListeners);
+                console.log(dataListeners[eventName]);
+                Object.values(eventListeners).filter(listener => listener).forEach(listener => listener(otherData));
+            });
+        });
+        // const eventSource = new EventSource(`/game/gameEvent/${userId}`);
+        // eventSource.addEventListener('open', () => {
+        //     console.log('Connected');
+        // }, false);
+        // eventSource.addEventListener('error', e => {
+        //     if (e.target.readyState === EventSource.CLOSED) {
+        //         console.log('Disconnected');
+        //         Swal.fire({
+        //             type: 'error',
+        //             title: '连接已断开'
+        //         })
+        //     } else if (e.target.readyState === EventSource.CONNECTING) {
+        //         console.log('Connecting...');
+        //         Swal.fire({
+        //             type: 'error',
+        //             title: '重连中...'
+        //         })
+        //     }
+        // }, false);
+        // eventSource.onmessage = ({eventName, ...otherData}) => {
+        //     const {eventListeners = {}} = dataListeners[eventName];
+        //     Object.values(eventListeners).filter(listener => listener).forEach(listener => listener(otherData));
+        // };
+        // this.closeSse = () => eventSource.close();
+    };
 };
 
 export default http

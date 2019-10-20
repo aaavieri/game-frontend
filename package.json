@@ -14,7 +14,9 @@
     "react-scripts": "3.2.0",
     "react-timer-hook": "^1.1.7",
     "redux": "^4.0.4",
-    "sweetalert2": "^7.22.2"
+    "sockjs-client": "^1.4.0",
+    "sweetalert2": "^7.22.2",
+    "webstomp-client": "^1.2.6"
   },
   "scripts": {
     "start": "react-scripts start",
