@@ -24,10 +24,10 @@ function Inner(props) {
     const [ playing, setPlaying ] = useState(false);
     useEffect(() => {
         setCardLabel("未发牌");
-    });
+    }, []);
     const [ avatarSrc, setAvatarSrc ] = useState("/asset/img/unknown.jpg");
     const getUserLabel = userId => {
-        return `${userId}(${userId === lordUser ? "地主" : "农民"})`
+        return `${userId} (${lordUser ? (userId === lordUser ? "地主" : "农民") : "未分配"})`
     };
     http.addDataListener("JoinGame", listenerName, ({userList}) => {
         if (userList.length === 2) {
@@ -37,7 +37,7 @@ function Inner(props) {
                 setOtherUser(getUserLabel(userList[1]));
             }
         } else if (userList.length === 3) {
-            const index = userList.findIndex(userId);
+            const index = userList.findIndex(idInList => idInList === userId);
             if (position === -1) {
                 setOtherUser(getUserLabel(userList[(index + 2) % 3]));
             } else if (position === 1) {

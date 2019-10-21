@@ -57,11 +57,12 @@ const http = new function () {
     this.removeDataListener = (eventName, listenerName) => {
         delete dataListeners[eventName][listenerName];
     };
-    this.startGameEvent = userId => {
+    this.startGameEvent = (userId, nextTick = () => {}) => {
         const socket = new SockJS("/gameEvent/handshake");
         const stompClient = webstomp.over(socket);
+        let subscription;
         stompClient.connect({}, () => {
-            stompClient.subscribe(`/topic/gameEvent/${userId}`, ({body}) => {
+            subscription = stompClient.subscribe(`/topic/gameEvent/${userId}`, ({body}) => {
                 const data = JSON.parse(body);
                 const {eventName, ...otherData} = data;
                 const eventListeners = dataListeners[eventName] || {};
@@ -69,31 +70,19 @@ const http = new function () {
                 console.log(dataListeners[eventName]);
                 Object.values(eventListeners).filter(listener => listener).forEach(listener => listener(otherData));
             });
+            nextTick();
         });
-        // const eventSource = new EventSource(`/game/gameEvent/${userId}`);
-        // eventSource.addEventListener('open', () => {
-        //     console.log('Connected');
-        // }, false);
-        // eventSource.addEventListener('error', e => {
-        //     if (e.target.readyState === EventSource.CLOSED) {
-        //         console.log('Disconnected');
-        //         Swal.fire({
-        //             type: 'error',
-        //             title: '连接已断开'
-        //         })
-        //     } else if (e.target.readyState === EventSource.CONNECTING) {
-        //         console.log('Connecting...');
-        //         Swal.fire({
-        //             type: 'error',
-        //             title: '重连中...'
-        //         })
-        //     }
-        // }, false);
-        // eventSource.onmessage = ({eventName, ...otherData}) => {
-        //     const {eventListeners = {}} = dataListeners[eventName];
-        //     Object.values(eventListeners).filter(listener => listener).forEach(listener => listener(otherData));
-        // };
-        // this.closeSse = () => eventSource.close();
+        this.stopGameEvent = () => {
+            if (subscription) {
+                subscription.unsubscribe();
+            }
+            stompClient.disconnect();
+        }
+    };
+    this.triggerGameEvent = (data, eventName, listenerName = "ALL") => {
+        const eventListeners = dataListeners[eventName] || {};
+        Object.keys(eventListeners).filter(name => name === listenerName || listenerName === "ALL")
+            .map(name => eventListeners[name]).forEach(listener => listener(data));
     };
 };
 

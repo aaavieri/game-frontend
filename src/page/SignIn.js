@@ -52,7 +52,7 @@ function Inner(props) {
             setUserId(username);
             loginSuccess();
             document.title = `${username} - game`;
-            http.startGameEvent(username);
+            // http.startGameEvent(username);
             history.push('/');
         }
     };

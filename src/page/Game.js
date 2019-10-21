@@ -40,21 +40,29 @@ const useStyles = makeStyles(theme => ({
 
 function Inner(props) {
     const classes = useStyles();
-    const {joinSuccess, setLordUser, info: {joined, userId}} = props;
+    const {joinSuccess, setLordUser, quitSuccess, info: {joined, userId, gameId}} = props;
     http.addDataListener("CallLord", "Game", ({lordUser}) => {
         setLordUser(lordUser);
     });
+    http.addDataListener("QuitGame", "Game", () => {
+        quitSuccess();
+    });
     useEffect(() => {
+        let tempGameId = gameId;
         http.startGameEvent(userId, () => {
             if (!joined) {
-                http.joinGame({userId}).then(({success}) => {
+                http.joinGame({userId}).then(({success, data: gameId, claims: {eventData}}) => {
                     if (success) {
-                        joinSuccess();
+                        tempGameId = gameId;
+                        joinSuccess(gameId);
+                        http.triggerGameEvent(eventData, "JoinGame", "ALL");
                     }
                 })
             }
         });
-        return http.stopGameEvent;
+        return () => {
+            http.quitGame({userId, gameId:　tempGameId}).then(http.stopGameEvent);
+        };
     }, []);
     return <React.Fragment>
         <CssBaseline/>
@@ -80,8 +88,9 @@ function Inner(props) {
 const Game = withRouter(connect(
     state => {return {info: state.info}},
     {
-        setLordUser: (lordUser) => ({type: "SET_LORD_USER", payload: {lordUser}}),
-        joinSuccess: () => ({type: "JOIN_SUCCESS"})
+        setLordUser: lordUser => ({type: "SET_LORD_USER", payload: {lordUser}}),
+        joinSuccess: gameId => ({type: "JOIN_SUCCESS", payload: {gameId}}),
+        quitSuccess: () => ({type: "QUIT_SUCCESS"})
     }
 )(Inner));
 
