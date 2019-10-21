@@ -33,14 +33,14 @@ const useStyles = makeStyles(theme => ({
         height: "100%",
         padding: 5
     },
-    startButton: {
+    operationButton: {
         margin: theme.spacing(1),
     },
 }));
 
 function Inner(props) {
     const classes = useStyles();
-    const { info: {userId, gameId, lordUser}, position } = props;
+    const { info: {userId, gameId, lordUser, gameStatus, userStatus}, position } = props;
     const [ userLabel, setUserLabel ] = useState(helper.getUserLabel(userId, lordUser));
     const listenerName = `Other.${position}`;
     const [ cards, setCards ] = useState([{
@@ -132,9 +132,18 @@ function Inner(props) {
                         {playing && <Timer countDown={10}/>}
                     </Grid>
                     <Grid item>
-                        <Button variant="contained" color="primary" className={classes.startButton} onClick={startGame} disabled={!canStart}>
-                            开始
-                        </Button>
+                        {
+                            gameStatus === "WAITING_START" &&
+                            <Button variant="contained" color="primary" className={classes.operationButton} onClick={startGame} disabled={!canStart}>
+                                开始
+                            </Button>
+                        }
+                        {
+                            gameStatus === "WAITING_LORD" && userStatus === "WAITING_SELF_LORD" &&
+                            <Button variant="contained" color="secondary" className={classes.operationButton} onClick={startGame} disabled={!canStart}>
+                                叫地主
+                            </Button>
+                        }
                     </Grid>
                 </Grid>
             </Grid>

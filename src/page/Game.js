@@ -41,7 +41,8 @@ const useStyles = makeStyles(theme => ({
 
 function Inner(props) {
     const classes = useStyles();
-    const {joinSuccess, setLordUser, quitSuccess, setStatus, info: {joined, userId, gameId, gameStatus, userStatus}} = props;
+    const {joinSuccess, setLordUser, quitSuccess, setStatus, info: {joined, userId, gameId}} = props;
+    http.addDataListener("*", "Game", console.log);
     http.addDataListener("*", "Game", ({gameStatus, userStatus}) => {
         setStatus(gameStatus, userStatus);
     });

@@ -57,6 +57,8 @@ function Inner(props) {
         if (cardList && cardList.length > 0) {
             cardCount = cardList.length;
             setCardLabel(`${cardCount}张牌`);
+        } else {
+            setCardLabel("等待开始");
         }
     });
     http.addDataListener("CallLord", listenerName, ({ lordUser, lordCards = [] }) => {

@@ -81,6 +81,8 @@ const http = new function () {
     };
     this.triggerGameEvent = (data, eventName, listenerName = "ALL") => {
         const eventListeners = dataListeners[eventName] || {};
+        const commonListeners = dataListeners["*"] || {};
+        Object.values(commonListeners).filter(listener => listener).forEach(listener => listener(data));
         Object.keys(eventListeners).filter(name => name === listenerName || listenerName === "ALL")
             .map(name => eventListeners[name]).forEach(listener => listener(data));
     };
