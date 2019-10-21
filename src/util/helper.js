@@ -26,5 +26,12 @@ export default {
             default:
                 return "未知";
         }
+    },
+    getUserLabel: (userId, lordUser) => {
+        if (userId) {
+            return `${userId} (${lordUser ? (userId === lordUser ? "地主" : "农民") : "未分配"})`;
+        } else {
+            return "未加入";
+        }
     }
 }

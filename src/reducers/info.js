@@ -1,4 +1,4 @@
-const defaultState = {userId: "", gameId: -1, login: false, lordUser: "", joined: false};
+const defaultState = {userId: "", gameId: -1, login: false, lordUser: "", joined: false, gameStatus: "NOT_ENOUGH_USER", userStatus: "WAITING_OTHER_JOIN"};
 const reducer = (state = defaultState, action) => {
     switch (action.type) {
         case "SET_USER_ID":
@@ -11,6 +11,8 @@ const reducer = (state = defaultState, action) => {
             return {...state, gameId: -1, lordUser: null};
         case "SET_LORD_USER":
             return {...state, lordUser: action.payload.lordUser};
+        case "SET_STATUS":
+            return {...state, gameStatus: action.payload.gameStatus, userStatus: action.payload.userStatus};
         default:
             return state
     }

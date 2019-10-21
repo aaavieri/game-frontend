@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -56,17 +56,16 @@ function Inner(props) {
             history.push('/');
         }
     };
-
-    document.addEventListener("keydown", async e => {
-        switch( e.keyCode) {
+    const enter = async e => {
+        switch (e.keyCode) {
             case 13:
                 await onLogin();
                 break
         }
-    });
+    };
 
     return (
-        <Container component="main" maxWidth="xs">
+        <Container component="main" maxWidth="xs" onKeyDown={enter}>
             <CssBaseline />
             <div className={classes.paper}>
                 <Avatar className={classes.avatar}>

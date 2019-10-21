@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {CssBaseline, Container, GridList, GridListTile, Typography} from '@material-ui/core'
+import {CssBaseline, GridList, GridListTile} from '@material-ui/core'
 import {makeStyles} from '@material-ui/core/styles';
 import {withRouter} from 'react-router';
 import {connect} from "react-redux";
@@ -7,6 +7,7 @@ import Other from '../component/Other'
 import Play from '../component/Play'
 import Self from '../component/Self'
 import {http} from '../util';
+import { Redirect } from "react-router";
 
 const useStyles = makeStyles(theme => ({
     game: {
@@ -40,7 +41,10 @@ const useStyles = makeStyles(theme => ({
 
 function Inner(props) {
     const classes = useStyles();
-    const {joinSuccess, setLordUser, quitSuccess, info: {joined, userId, gameId}} = props;
+    const {joinSuccess, setLordUser, quitSuccess, setStatus, info: {joined, userId, gameId, gameStatus, userStatus}} = props;
+    http.addDataListener("*", "Game", ({gameStatus, userStatus}) => {
+        setStatus(gameStatus, userStatus);
+    });
     http.addDataListener("CallLord", "Game", ({lordUser}) => {
         setLordUser(lordUser);
     });
@@ -48,22 +52,27 @@ function Inner(props) {
         quitSuccess();
     });
     useEffect(() => {
-        let tempGameId = gameId;
-        http.startGameEvent(userId, () => {
-            if (!joined) {
-                http.joinGame({userId}).then(({success, data: gameId, claims: {eventData}}) => {
-                    if (success) {
-                        tempGameId = gameId;
-                        joinSuccess(gameId);
-                        http.triggerGameEvent(eventData, "JoinGame", "ALL");
-                    }
-                })
-            }
-        });
-        return () => {
-            http.quitGame({userId, gameId:　tempGameId}).then(http.stopGameEvent);
-        };
+        if (userId) {
+            let tempGameId = gameId;
+            http.startGameEvent(userId, () => {
+                if (!joined) {
+                    http.joinGame({userId}).then(({success, data: gameId, claims: {eventData}}) => {
+                        if (success) {
+                            tempGameId = gameId;
+                            joinSuccess(gameId);
+                            http.triggerGameEvent(eventData, "JoinGame", "ALL");
+                        }
+                    })
+                }
+            });
+            return () => {
+                http.quitGame({userId, gameId:　tempGameId}).then(http.stopGameEvent);
+            };
+        }
     }, []);
+    if (!userId) {
+        return <Redirect to="/"/>;
+    }
     return <React.Fragment>
         <CssBaseline/>
         <div className={classes.game}>
@@ -90,7 +99,8 @@ const Game = withRouter(connect(
     {
         setLordUser: lordUser => ({type: "SET_LORD_USER", payload: {lordUser}}),
         joinSuccess: gameId => ({type: "JOIN_SUCCESS", payload: {gameId}}),
-        quitSuccess: () => ({type: "QUIT_SUCCESS"})
+        quitSuccess: () => ({type: "QUIT_SUCCESS"}),
+        setStatus: (gameStatus, userStatus) => ({type: "SET_STATUS", payload: {gameStatus, userStatus}})
     }
 )(Inner));
 

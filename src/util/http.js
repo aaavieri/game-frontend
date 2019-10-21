@@ -66,8 +66,8 @@ const http = new function () {
                 const data = JSON.parse(body);
                 const {eventName, ...otherData} = data;
                 const eventListeners = dataListeners[eventName] || {};
-                console.log(eventListeners);
-                console.log(dataListeners[eventName]);
+                const commonListeners = dataListeners["*"] || {};
+                Object.values(commonListeners).filter(listener => listener).forEach(listener => listener(otherData));
                 Object.values(eventListeners).filter(listener => listener).forEach(listener => listener(otherData));
             });
             nextTick();

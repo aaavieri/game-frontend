@@ -4,7 +4,7 @@ import {makeStyles} from "@material-ui/core/styles";
 import {connect} from "react-redux";
 import PokerCard from "./PokerCard"
 import Timer from "./Timer"
-import {http} from "../util";
+import {http, helper} from "../util";
 
 const useStyles = makeStyles({
     container: {
@@ -20,45 +20,47 @@ function Inner(props) {
     const { info: {userId, lordUser}, position } = props;
     const listenerName = `Other.${position}`;
     const [ cardLabel, setCardLabel ] = useState("");
-    const [ otherUser, setOtherUser ] = useState("未加入");
+    const [ userLabel, setUserLabel ] = useState("未加入");
+    const [ otherUserId, setOtherUserId ] = useState("");
     const [ playing, setPlaying ] = useState(false);
     useEffect(() => {
         setCardLabel("未发牌");
     }, []);
     const [ avatarSrc, setAvatarSrc ] = useState("/asset/img/unknown.jpg");
-    const getUserLabel = userId => {
-        return `${userId} (${lordUser ? (userId === lordUser ? "地主" : "农民") : "未分配"})`
-    };
     http.addDataListener("JoinGame", listenerName, ({userList}) => {
+        let tempOtherUserId = otherUserId;
         if (userList.length === 2) {
             if (position === -1 && userId === userList[1]) {
-                setOtherUser(getUserLabel(userList[0]));
+                tempOtherUserId = userList[0];
             } else if (position === 1 && userId === userList[0]) {
-                setOtherUser(getUserLabel(userList[1]));
+                tempOtherUserId = userList[1];
             }
         } else if (userList.length === 3) {
             const index = userList.findIndex(idInList => idInList === userId);
             if (position === -1) {
-                setOtherUser(getUserLabel(userList[(index + 2) % 3]));
+                tempOtherUserId = userList[(index + 2) % 3];
             } else if (position === 1) {
-                setOtherUser(getUserLabel(userList[(index + 1) % 3]));
+                tempOtherUserId = userList[(index + 1) % 3];
             }
         }
+        setUserLabel(helper.getUserLabel(tempOtherUserId));
+        setOtherUserId(tempOtherUserId);
     });
     let cardCount = 0;
     http.addDataListener("StartGame", listenerName, ({ lordUser, cardList = [] }) => {
-        if (lordUser === otherUser) {
+        setUserLabel(helper.getUserLabel(otherUserId, lordUser));
+        if (lordUser === otherUserId) {
             setAvatarSrc("/asset/img/lord.jpg");
         } else if (lordUser) {
             setAvatarSrc("/asset/img/farmer.jpg");
         }
-        if (cardList.length > 0) {
+        if (cardList && cardList.length > 0) {
             cardCount = cardList.length;
             setCardLabel(`${cardCount}张牌`);
         }
     });
     http.addDataListener("CallLord", listenerName, ({ lordUser, lordCards = [] }) => {
-        if (lordUser === otherUser) {
+        if (lordUser === otherUserId) {
             setAvatarSrc("/asset/img/lord.jpg");
             setPlaying(true);
             cardCount += lordCards.length;
@@ -68,14 +70,14 @@ function Inner(props) {
         setCardLabel(`${cardCount}张牌`);
     });
     http.addDataListener("SkipPlay", listenerName, ({ nextPlayUser }) => {
-        if (nextPlayUser === otherUser) {
+        if (nextPlayUser === otherUserId) {
             setPlaying(true);
         } else if (playing) {
             setPlaying(false);
         }
     });
     http.addDataListener("DoPlay", listenerName, ({ nextPlayUser, sentCard: {sentCards = []} }) => {
-        if (nextPlayUser === otherUser) {
+        if (nextPlayUser === otherUserId) {
             cardCount -= sentCards.length;
             setCardLabel(`${cardCount}张牌`);
             setPlaying(true);
@@ -86,7 +88,7 @@ function Inner(props) {
     return (
         <Grid container wrap="nowrap" spacing={2} className={classes.container} alignItems={"center"} justify={"center"} direction={"column"}>
             <Grid item>
-                <Typography variant="button" display="block" gutterBottom>{otherUser}</Typography>
+                <Typography variant="button" display="block" gutterBottom>{userLabel}</Typography>
             </Grid>
             <Grid item>
                 <Avatar src={avatarSrc}/>
